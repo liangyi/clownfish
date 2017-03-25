@@ -1,0 +1,2 @@
+add_executable(timestamp_test Timestamp_test.cc)
+target_link_libraries(timestamp_test clownfish_base)
