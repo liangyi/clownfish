@@ -17,7 +17,19 @@ set(CXX_FLAGS
 
 string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 
-set(CMAKE_CXX_COMPILER "g++")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+  message(STATUS "current platform: Linux")
+  set(CMAKE_CXX_COMPILER "g++")
+  add_definitions(-DOS_PLATFORM_LINUX)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  message(STATUS "current platform: Mac OSX (Darwin)")
+  set(CMAKE_CXX_COMPILER "clang++")
+  add_definitions(-DOS_PLATFORM_OSX_DARWIN)
+else ()
+  message(STATUS "other platform: ${CMAKE_SYSTEM_NAME}")
+endif()
+
+
 set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 

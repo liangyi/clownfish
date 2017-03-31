@@ -1,2 +1,8 @@
 add_executable(timestamp_test Timestamp_test.cc)
 target_link_libraries(timestamp_test clownfish_base)
+
+add_executable(logging_test Logging_test.cc)
+target_link_libraries(logging_test clownfish_base)
+
+add_executable(logfile_test LogFile_test.cc)
+target_link_libraries(logfile_test clownfish_base)
