@@ -1,4 +1,8 @@
 #include <clownfish/base/Thread.h>
+#include <clownfish/base/Logging.h>
+#include <clownfish/base/Exception.h>
+#include <assert.h>
+#include <stdio.h>
 
 using namespace std;
 
@@ -61,6 +65,43 @@ public:
 
     void runInThread()
     {
+        pid_t tid = clownfish::CurrentThread::tid();
+
+        shared_ptr<pid_t> ptid = wkTid_.lock();
+        if (ptid)
+        {
+            *ptid = tid;
+            ptid.reset();
+        }
+
+        clownfish::CurrentThread::t_threadName = name_.empty() ? "clownfishThread" : name_.c_str();
+
+        try
+        {
+            func_();
+            clownfish::CurrentThread::t_threadName = "finished";
+        }
+        catch (const Exception& ex)
+        {
+            clownfish::CurrentThread::t_threadName = "crashed";
+            fprintf(stderr, "Exception caught in Thread[%s]\n", name_.c_str());
+            fprintf(stderr, "reason[errcode: %d]: %s\n", ex.errcode(), ex.what());
+            fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
+            abort();
+        }
+        catch (const std::exception& ex)
+        {
+            clownfish::CurrentThread::t_threadName = "crashed";
+            fprintf(stderr, "Exception caught in Thread[%s]\n", name_.c_str());
+            fprintf(stderr, "reason: %s\n", ex.what());
+            abort();
+        }
+        catch (...)
+        {
+            clownfish::CurrentThread::t_threadName = "crashed";
+            fprintf(stderr, "Exception caught in Thread[%s]\n", name_.c_str());
+            throw;
+        }
     }
 private:
     ThreadFunc func_;
@@ -95,9 +136,18 @@ Thread::Thread(ThreadFunc&& func, const string& name)
       isJoined_(false),
       pthreadId_(0),
       tid_(new pid_t(0)),
-      name_(name)
+      name_(name),
+      func_(std::move(func))
 {
     setDefaultName();
+}
+
+Thread::~Thread()
+{
+    if (isStarted_ && !isJoined_)
+    {
+        pthread_detach(pthreadId_);
+    }
 }
 
 void Thread::setDefaultName()
@@ -108,4 +158,26 @@ void Thread::setDefaultName()
         snprintf(buf, sizeof(buf), "Thread%d", num);
         name_ = buf;
     }
+}
+
+void Thread::start()
+{
+    assert(!isStarted_);
+    isStarted_ = true;
+    detail::ThreadData* data = new detail::ThreadData(func_, name_, tid_);
+
+    if (pthread_create(&pthreadId_, NULL, &detail::threadEntry, data))
+    {
+        isStarted_ = false;
+        delete data;
+        LOG_SYSFATAL << "pthread_create failed";
+    }
+}
+
+int Thread::join()
+{
+    assert(isStarted_);
+    assert(!isJoined_);
+    isJoined_ = true;
+    return pthread_join(pthreadId_, NULL);
 }

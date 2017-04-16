@@ -6,3 +6,6 @@ target_link_libraries(logging_test clownfish_base)
 
 add_executable(logfile_test LogFile_test.cc)
 target_link_libraries(logfile_test clownfish_base)
+
+add_executable(mutex_test Mutex_test.cc)
+target_link_libraries(mutex_test clownfish_base)

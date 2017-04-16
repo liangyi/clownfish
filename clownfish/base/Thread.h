@@ -58,7 +58,7 @@ public:
     ~Thread();
 
     void start();
-    void join();
+    int join();
     bool isStarted() const { return isStarted_; }
     pid_t tid() const { return *tid_; }
     const std::string& name() const { return name_; }
@@ -71,6 +71,7 @@ private:
     pthread_t pthreadId_;
     std::shared_ptr<pid_t> tid_;
     std::string name_;
+    ThreadFunc func_;
 
     static std::atomic_int numCreated_;
 };
