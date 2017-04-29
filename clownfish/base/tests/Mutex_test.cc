@@ -1,5 +1,6 @@
 #include <clownfish/base/Mutex.h>
 #include <clownfish/base/Thread.h>
+#include <clownfish/base/Condition.h>
 #include <stdio.h>
 
 using namespace clownfish;
@@ -13,6 +14,7 @@ int main()
 {
     Mutex mutex;
     Rwlock rwlock;
+    Condition cond(mutex);
 
     MutexLockGuard mlg(mutex);
     WrlockGuard wrg(rwlock);

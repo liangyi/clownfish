@@ -32,6 +32,10 @@ public:
     {
         RET_CHECK(pthread_mutex_unlock(&mutex_));
     }
+    pthread_mutex_t* getMutexPtr()
+    {
+        return &mutex_;
+    }
 
 private:
     pthread_mutex_t mutex_;
