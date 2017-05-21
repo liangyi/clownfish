@@ -38,10 +38,10 @@ public:
                 p = p->next;
             }
             nullnote = nullptr;
-            exchres = atomic_compare_exchange_weak(&p->next, &nullnote, q);
+            exchres = std::atomic_compare_exchange_weak(&p->next, &nullnote, q);
         } while(!exchres);
 
-        atomic_compare_exchange_weak(&tail_, &oldP, q);
+        std::atomic_compare_exchange_weak(&tail_, &oldP, q);
     }
 
     bool popFront(T& result)
@@ -51,7 +51,7 @@ public:
         do {
             p = head_->next;
             if (p) {
-                exchres = atomic_compare_exchange_weak(&head_->next, &p, p->next);
+                exchres = std::atomic_compare_exchange_weak(&head_->next, &p, p->next);
             }
             else {
                 return false;

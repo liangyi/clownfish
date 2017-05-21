@@ -12,6 +12,7 @@ endif()
 set(CXX_FLAGS
   -g
   -Wall
+  -Wno-unused-result
   -std=c++11
   )
 
