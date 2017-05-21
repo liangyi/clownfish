@@ -7,8 +7,8 @@ using namespace std;
 
 ThreadPool::ThreadPool(const string& name)
     : mutex_(),
-      notEmpty_(mutex_),
-      notFull_(mutex_),
+      notEmpty_(),
+      notFull_(),
       name_(name),
       maxQueueSize_(0),
       isRunning_(false)
@@ -32,9 +32,8 @@ void ThreadPool::start(int threadNum)
     for (int i = 0; i < threadNum; ++i) {
         char id[32];
         snprintf(id, sizeof(id), "%d", i+1);
-        unique_ptr<Thread> t(new Thread(bind(&ThreadPool::runInThread, this), name_ + id));
+        unique_ptr<thread> t(new thread(bind(&ThreadPool::runInThread, this), name_ + id));
         threads_.push_back(std::move(t));
-        threads_[i]->start();
     }
     if (threadNum == 0 && threadInitCallback_)
     {
@@ -45,19 +44,22 @@ void ThreadPool::start(int threadNum)
 void ThreadPool::stop()
 {
     {
-        MutexLockGuard guard(mutex_);
+        unique_lock<mutex> lk(mutex_);
         isRunning_ = false;
-        notEmpty_.notifyAll();
+        notEmpty_.notify_all();
     }
     for(auto& thread: threads_)
     {
-        thread->join();
+        if (thread->joinable())
+        {
+            thread->join();
+        }
     }
 }
 
 size_t ThreadPool::queueSize() const
 {
-    MutexLockGuard guard(mutex_);
+    unique_lock<mutex> lk(mutex_);
     return queue_.size();
 }
 
@@ -69,25 +71,25 @@ void ThreadPool::run(Task&& task)
     }
     else
     {
-        MutexLockGuard guard(mutex_);
+        std::unique_lock<std::mutex> lk(mutex_);
         while (isFull())
         {
-            notFull_.wait();
+            notFull_.wait(lk);
         }
         assert(!isFull());
 
         queue_.push_back(std::move(task));
-        notEmpty_.notify();
+        notEmpty_.notify_one();
     }
 }
 
 ThreadPool::Task ThreadPool::take()
 {
-    MutexLockGuard guard(mutex_);
+    unique_lock<mutex> lk(mutex_);
 
     while (queue_.empty() && isRunning_)
     {
-        notEmpty_.wait();
+        notEmpty_.wait(lk);
     }
 
     Task task;
@@ -97,7 +99,7 @@ ThreadPool::Task ThreadPool::take()
         queue_.pop_front();
         if (maxQueueSize_ > 0)
         {
-            notFull_.notify();
+            notFull_.notify_one();
         }
     }
 

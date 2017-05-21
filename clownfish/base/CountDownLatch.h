@@ -1,8 +1,8 @@
 #ifndef _CLOWNFISH_BASE_COUNTDOWNLATCH_H_
 #define _CLOWNFISH_BASE_COUNTDOWNLATCH_H_
 
-#include <clownfish/base/Mutex.h>
-#include <clownfish/base/Condition.h>
+#include <mutex>
+#include <condition_variable>
 
 namespace clownfish
 {
@@ -18,8 +18,8 @@ public:
     int getCount() const;
 
 private:
-    mutable Mutex mutex_;
-    Condition cond_;
+    mutable std::mutex mutex_;
+    std::condition_variable cond_;
     int count_;
 };
 }

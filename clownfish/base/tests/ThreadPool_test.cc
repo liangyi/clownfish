@@ -1,6 +1,7 @@
 #include <clownfish/base/ThreadPool.h>
 #include <clownfish/base/CountDownLatch.h>
 #include <clownfish/base/Logging.h>
+#include <clownfish/base/LockFreeQueue.h>
 #include <unistd.h>
 
 using namespace std;
@@ -15,6 +16,8 @@ void print(int i)
 int main()
 {
     ThreadPool pool("testPool");
+
+    LockFreeQueue<int> queue;
 
     //pool.setMaxQueueSize(10);
     pool.start(8);

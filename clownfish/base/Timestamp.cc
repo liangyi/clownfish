@@ -1,7 +1,5 @@
 #include <clownfish/base/Timestamp.h>
-#include <inttypes.h>
-
-#define __STDC_FORMAT_MACROS
+#include <cinttypes>
 
 using namespace std;
 using namespace clownfish;

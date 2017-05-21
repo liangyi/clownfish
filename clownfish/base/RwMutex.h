@@ -1,5 +1,5 @@
-#ifndef _CLOWNFISH_BASE_MUTEX_H_
-#define _CLOWNFISH_BASE_MUTEX_H_
+#ifndef _CLOWNFISH_BASE_RWMUTEX_H_
+#define _CLOWNFISH_BASE_RWMUTEX_H_
 
 #include <pthread.h>
 #include <assert.h>
@@ -10,61 +10,10 @@
 namespace clownfish
 {
 
-class Mutex
+class RwMutex
 {
 public:
-    Mutex()
-    {
-        RET_CHECK(pthread_mutex_init(&mutex_, NULL));
-    }
-    Mutex(const Mutex&) = delete;
-    Mutex& operator=(const Mutex&) = delete;
-    ~Mutex()
-    {
-        RET_CHECK(pthread_mutex_destroy(&mutex_));
-    }
-
-    void lock()
-    {
-        RET_CHECK(pthread_mutex_lock(&mutex_));
-    }
-    void unlock()
-    {
-        RET_CHECK(pthread_mutex_unlock(&mutex_));
-    }
-    pthread_mutex_t* getMutexPtr()
-    {
-        return &mutex_;
-    }
-
-private:
-    pthread_mutex_t mutex_;
-};
-
-class MutexLockGuard
-{
-public:
-    explicit MutexLockGuard(Mutex& m)
-        : mutex_(m)
-    {
-        mutex_.lock();
-    }
-    MutexLockGuard(const MutexLockGuard&) = delete;
-    MutexLockGuard& operator=(const MutexLockGuard&) = delete;
-
-    ~MutexLockGuard()
-    {
-        mutex_.unlock();
-    }
-
-private:
-    Mutex& mutex_;
-};
-
-class Rwlock
-{
-public:
-    Rwlock(bool isWriterPrefer = false)
+    RwMutex(bool isWriterPrefer = false)
     {
         if (isWriterPrefer)
         {
@@ -79,9 +28,9 @@ public:
             RET_CHECK(pthread_rwlock_init(&rwlock_, NULL));
         }
     }
-    Rwlock(const Rwlock&) = delete;
-    Rwlock& operator=(const Rwlock&) = delete;
-    ~Rwlock()
+    RwMutex(const Rwlock&) = delete;
+    RwMutex& operator=(const Rwlock&) = delete;
+    ~RwMutex()
     {
         RET_CHECK(pthread_rwlock_destroy(&rwlock_));
     }
@@ -107,39 +56,39 @@ private:
 class RdlockGuard
 {
 public:
-    explicit RdlockGuard(Rwlock& rw)
-        : rwlock_(rw)
+    explicit RdlockGuard(RwMutex& rw)
+        : rwMutex_(rw)
     {
-        rwlock_.rdlock();
+        rwMutex_.rdlock();
     }
     RdlockGuard(const RdlockGuard&) = delete;
     RdlockGuard& operator=(const RdlockGuard&) = delete;
     ~RdlockGuard()
     {
-        rwlock_.unlock();
+        rwMutex_.unlock();
     }
 
 private:
-    Rwlock& rwlock_;
+    RwMutex& rwMutex_;
 };
 
 class WrlockGuard
 {
 public:
-    explicit WrlockGuard(Rwlock& rw)
-        : rwlock_(rw)
+    explicit WrlockGuard(RwMutex& rw)
+        : rwMutex_(rw)
     {
-        rwlock_.wrlock();
+        rwMutex_.wrlock();
     }
     WrlockGuard(const WrlockGuard&) = delete;
     WrlockGuard& operator=(const WrlockGuard&) = delete;
     ~WrlockGuard()
     {
-        rwlock_.unlock();
+        rwMutex_.unlock();
     }
 
 private:
-    Rwlock& rwlock_;
+    RwMutex& rwMutex_;
 };
 
 }

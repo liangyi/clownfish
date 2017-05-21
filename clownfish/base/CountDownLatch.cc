@@ -4,32 +4,32 @@ using namespace clownfish;
 
 CountDownLatch::CountDownLatch(int count)
     : mutex_(),
-      cond_(mutex_),
+      cond_(),
       count_(count)
 {
 }
 
 void CountDownLatch::wait()
 {
-    MutexLockGuard guard(mutex_);
+    std::unique_lock<std::mutex> lk(mutex_);
     while (count_ > 0)
     {
-        cond_.wait();
+        cond_.wait(lk);
     }
 }
 
 void CountDownLatch::countDown()
 {
-    MutexLockGuard guard(mutex_);
+    std::unique_lock<std::mutex> lk(mutex_);
     --count_;
     if (count_ == 0)
     {
-        cond_.notifyAll();
+        cond_.notify_one();
     }
 }
 
 int CountDownLatch::getCount() const
 {
-    MutexLockGuard guard(mutex_);
+    std::unique_lock<std::mutex> lk(mutex_);
     return count_;
 }

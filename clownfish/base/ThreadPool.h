@@ -1,12 +1,13 @@
 #ifndef _CLOWNFISH_BASE_THREADPOOL_H_
 #define _CLOWNFISH_BASE_THREADPOOL_H_
 
-#include <clownfish/base/Condition.h>
-#include <clownfish/base/Thread.h>
+#include <condition_variable>
+#include <thread>
 #include <memory>
 #include <functional>
 #include <vector>
 #include <deque>
+#include <string>
 
 namespace clownfish
 {
@@ -41,12 +42,12 @@ private:
     void runInThread();
     Task take();
 
-    mutable Mutex mutex_;
-    Condition notEmpty_;
-    Condition notFull_;
+    mutable std::mutex mutex_;
+    std::condition_variable notEmpty_;
+    std::condition_variable notFull_;
     std::string name_;
     Task threadInitCallback_;
-    std::vector<std::unique_ptr<Thread> > threads_;
+    std::vector<std::unique_ptr<std::thread> > threads_;
     std::deque<Task> queue_;
     size_t maxQueueSize_;
     bool isRunning_;

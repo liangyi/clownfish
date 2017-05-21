@@ -1,6 +1,6 @@
 #include <clownfish/base/Logging.h>
 #include <clownfish/base/Timestamp.h>
-#include <clownfish/base/Thread.h>
+#include <clownfish/base/CurrentThread.h>
 #include <errno.h>
 #include <cstring>
 #include <assert.h>
@@ -80,8 +80,7 @@ Logger::Impl::Impl(Logger::LogLevel level, int log_errno, const BaseFilename& fi
       file_(file)
 {
     logTime();
-    CurrentThread::tid();
-    stream_ << STR(CurrentThread::t_tidString, CurrentThread::t_tidStringLength) << ' ';
+    stream_ << ' ' << CurrentThread::tidString() << ' ';
     stream_ << STR(LogLevelName[level_], 6);
     stream_ << '[' << file_ << ':' << line_ << STR("] ", 2);
     if (log_errno != 0)
